@@ -23,7 +23,7 @@ export async function syncState(state): Promise<any> {
   await workspacesService.saveState(state._id, state)
 }
 
-export function scheduleSync(state): Promise<void> {
+export function scheduleSync(state, reason?: string): Promise<void> {
   if (typeof state._id === 'undefined') {
     // unsupported module?
     return
@@ -35,6 +35,7 @@ export function scheduleSync(state): Promise<void> {
 
   return new Promise<void>(resolve => {
     persistModulesTimers[state._id] = setTimeout(async () => {
+      reason && console.log('reason:', reason)
       await syncState(state)
 
       resolve()
@@ -106,7 +107,9 @@ export async function registerModule(id, module: Module<any, any>, boot?: boolea
     await bootPane(id)
   }
 
-  syncState(module.state)
+  if (store.state.app.isBooted) {
+    syncState(module.state)
+  }
 }
 
 export function waitForStateMutation(getter): Promise<any> {
