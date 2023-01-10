@@ -8,7 +8,10 @@
       :paneId="paneId"
       :settings="() => import('@/components/prices/PricesDialog.vue')"
     >
-      <prices-sort-dropdown :pane-id="paneId" class="toolbar__label -arrow" />
+      <prices-sort-dropdown
+        :pane-id="paneId"
+        class="toolbar__label -arrow -text"
+      />
     </pane-header>
     <div class="markets-bar__wrapper hide-scrollbar">
       <component
@@ -334,7 +337,7 @@ export default class extends Mixins(PaneMixin) {
   }
 
   onResize(width: number, height: number) {
-    this.mode = width > height * 1.75 ? 'horizontal' : 'vertical'
+    this.mode = width > height * 3 ? 'horizontal' : 'vertical'
   }
 
   getTimeToNextReset() {
@@ -380,9 +383,10 @@ export default class extends Mixins(PaneMixin) {
 
   clearPeriodReset() {
     for (const market in this._initialValues) {
-      this._initialValues[market].change = this._initialValues[
-        market
-      ].volume = this._initialValues[market].volumeDelta = 0
+      this._initialValues[market].change =
+        this._initialValues[market].volume =
+        this._initialValues[market].volumeDelta =
+          0
     }
 
     if (this._resetTimeout) {
@@ -473,7 +477,6 @@ export default class extends Mixins(PaneMixin) {
     }
 
     &.-pending {
-      background-color: var(--theme-color-base);
       opacity: 0.5;
     }
 

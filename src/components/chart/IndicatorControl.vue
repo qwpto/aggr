@@ -151,7 +151,7 @@ export default class extends Vue {
 
   &__controls {
     padding-left: 1rem;
-    margin-left: -0.5rem;
+    margin-left: -1rem;
     display: none;
     align-items: center;
     pointer-events: none;
@@ -162,8 +162,29 @@ export default class extends Vue {
 
     > .btn {
       border-radius: 0;
-      padding: 0.2em 0.4em;
+      padding: 0.25em 0.5em;
       font-size: 1em;
+      background-color: var(--theme-buy-50);
+      border: 1px solid var(--theme-buy-base);
+
+      &:hover {
+        background-color: var(--theme-buy-base);
+        border-color: var(--theme-buy-100);
+      }
+
+      &:first-child {
+        border-radius: 0.25em 0 0 0.25em;
+        border-right: 0;
+      }
+
+      &:last-child {
+        border-radius: 0 0.25em 0.25em 0;
+        border-left: 0;
+      }
+
+      &:first-child:last-child {
+        border-radius: 0.25em;
+      }
     }
   }
 

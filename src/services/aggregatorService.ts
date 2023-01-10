@@ -4,6 +4,7 @@ import { randomString } from '@/utils/helpers'
 import EventEmitter from 'eventemitter3'
 
 import Worker from 'worker-loader!@/worker/aggregator'
+import dialogService from './dialogService'
 import {
   countDecimals,
   marketDecimals,
@@ -32,6 +33,33 @@ class AggregatorService extends EventEmitter {
   listenUtilityEvents() {
     this.once('hello', () => {
       workspacesService.initialize()
+    })
+
+    this.on('error', async event => {
+      if (
+        !event.wasErrored ||
+        event.wasOpened ||
+        dialogService.isDialogOpened('connection-issue')
+      ) {
+        return
+      }
+
+      const payload = await dialogService.openAsPromise(
+        (
+          await import('@/components/ConnectionIssueDialog.vue')
+        ).default,
+        {
+          exchangeId: event.exchangeId,
+          restrictedUrl: event.originalUrl
+        },
+        'connection-issue'
+      )
+
+      if (typeof payload === 'string') {
+        store.commit('settings/SET_WS_PROXY_URL', payload)
+        await store.dispatch('exchanges/disconnect', event.exchangeId)
+        await store.dispatch('exchanges/connect', event.exchangeId)
+      }
     })
 
     this.on('price', ({ market, price }: { market: string; price: number }) => {

@@ -1,11 +1,16 @@
 import store from '@/store'
-import { formatRgb, toRgb } from 'color-fns'
+import { getColor } from '@/utils/colors'
 import {
   ChartOptions,
   DeepPartial,
   LineType,
   LineWidth
 } from 'lightweight-charts'
+import { ChartPaneState, IndicatorSettings } from '@/store/panesSettings/chart'
+import merge from 'lodash.merge'
+
+const computedDefaultValues = {}
+const computedOptionTypes = {}
 
 export const defaultChartOptions = {
   crosshair: {
@@ -50,7 +55,7 @@ export const defaultChartOptions = {
     barSpacing: 4,
     minBarSpacing: 0,
     rightOffset: 12,
-    lockVisibleTimeRangeOnResize: false,
+    lockVisibleTimeRangeOnResize: true,
     borderVisible: true,
     borderColor: 'rgba(255, 255, 255, .2)',
     visible: true,
@@ -58,7 +63,12 @@ export const defaultChartOptions = {
     secondsVisible: true
   },
   rightPriceScale: {
-    borderColor: 'rgba(255, 255, 255, .2)'
+    borderColor: 'rgba(255, 255, 255, .2)',
+    visible: true
+  },
+  leftPriceScale: {
+    borderColor: 'rgba(255, 255, 255, .2)',
+    visible: true
   }
 }
 
@@ -82,7 +92,7 @@ export const defaultLineOptions = {
 }
 
 export const defaultCandlestickOptions = {
-  priceLineColor: 'rgba(255, 255, 255, .5)',
+  priceLineColor: null,
   borderVisible: false,
   upColor: '#c3a87a',
   downColor: '#e53935',
@@ -139,7 +149,6 @@ export const defaultBarOptions = {
 export const defaultStatsChartOptions = {
   ...defaultChartOptions,
   rightPriceScale: {
-    position: 'none',
     mode: 0
   },
   timeScale: {
@@ -147,7 +156,7 @@ export const defaultStatsChartOptions = {
     rightOffset: 5,
     lockVisibleTimeRangeOnResize: true,
     rightBarStaysOnScroll: true,
-    borderColor: 'rgba(255, 255, 255, .2)',
+    borderColor: 'transparent',
     timeVisible: true
   }
 }
@@ -168,96 +177,253 @@ export const defaultPlotsOptions = {
   histogram: defaultHistogramOptions
 }
 
-export function getChartCustomColorsOptions(color?: string) {
-  let textColor = color
-
-  if (!textColor) {
-    if (store.state.settings.textColor) {
-      textColor = store.state.settings.textColor
-    } else {
-      textColor = store.state.settings.theme === 'light' ? '#111111' : '#f6f6f6'
-    }
-  }
-
-  const borderColor = formatRgb({ ...toRgb(textColor), alpha: 0.2 })
-
-  const crossHairColor =
-    store.state.settings.theme === 'light'
-      ? 'rgba(0, 0, 0, .25)'
-      : 'rgba(255, 255, 255, .25)'
-
+export function getChartLayoutOptions() {
+  const styles = getComputedStyle(document.documentElement)
+  const textColor = styles.getPropertyValue('--theme-color-100')
+  const transColor = styles.getPropertyValue('--theme-background-100')
+  console.log('chart layout textColor', textColor)
   const customColorsOptions = {
-    crosshair: {
-      vertLine: {
-        color: crossHairColor
-      },
-      horzLine: {
-        color: crossHairColor
-      }
-    },
     layout: {
       textColor: textColor,
-      borderColor
-    },
-    rightPriceScale: {
-      borderColor
-    },
-    timeScale: {
-      borderColor
+      borderColor: transColor
     }
   }
 
   return customColorsOptions
 }
 
-export function getChartOptions(
-  baseOptions: DeepPartial<ChartOptions>
-): DeepPartial<ChartOptions> {
-  const chartOptions = Object.assign({}, baseOptions)
+export function getChartCrosshairOptions() {
+  const textColor = getComputedStyle(document.documentElement).getPropertyValue(
+    '--theme-color-o20'
+  )
 
-  const chartColorOptions = getChartCustomColorsOptions()
-
-  for (const prop in chartColorOptions) {
-    Object.assign(chartOptions[prop], chartColorOptions[prop])
+  return {
+    crosshair: {
+      vertLine: {
+        color: textColor,
+        labelVisible: true
+      },
+      horzLine: {
+        color: textColor,
+        labelVisible: true
+      }
+    }
   }
-
-  return chartOptions
 }
 
-export function getDefaultIndicatorOptionValue(
-  key: string,
-  plotTypes: string[]
-) {
-  let value
+export function getChartWatermarkOptions(paneId) {
+  const chartOptions = store.state[paneId] as ChartPaneState
 
-  if (plotTypes) {
-    for (const type of plotTypes) {
-      if (typeof defaultPlotsOptions[type][key] !== 'undefined') {
-        return defaultPlotsOptions[type][key]
+  return {
+    watermark: {
+      color: chartOptions.watermarkColor,
+      visible: chartOptions.showWatermark
+    }
+  }
+}
+
+export function getChartBorderOptions(paneId?: string) {
+  const transColor = getComputedStyle(
+    document.documentElement
+  ).getPropertyValue('--theme-color-o20')
+
+  if (!paneId) {
+    return {
+      timeScale: {
+        borderColor: transColor
+      },
+      rightPriceScale: {
+        borderColor: transColor
+      },
+      leftPriceScale: {
+        borderColor: transColor
       }
     }
   }
 
-  if (
-    typeof value === 'undefined' &&
-    typeof defaultSerieOptions[key] !== 'undefined'
-  ) {
+  const chartOptions = store.state[paneId] as ChartPaneState
+
+  return {
+    timeScale: {
+      visible: chartOptions.showTimeScale,
+      borderColor: chartOptions.borderColor || transColor,
+      borderVisible: chartOptions.showBorder
+    },
+    rightPriceScale: {
+      visible: chartOptions.showRightScale,
+      borderColor: chartOptions.borderColor || transColor,
+      borderVisible: chartOptions.showBorder
+    },
+    leftPriceScale: {
+      visible: chartOptions.showLeftScale,
+      borderColor: chartOptions.borderColor || transColor,
+      borderVisible: chartOptions.showBorder
+    }
+  }
+}
+
+export function getChartGridlinesOptions(paneId) {
+  const chartOptions = store.state[paneId] as ChartPaneState
+
+  return {
+    grid: {
+      vertLines: {
+        color: chartOptions.verticalGridlinesColor,
+        visible: chartOptions.showVerticalGridlines
+      },
+      horzLines: {
+        color: chartOptions.horizontalGridlinesColor,
+        visible: chartOptions.showHorizontalGridlines
+      }
+    }
+  }
+}
+
+export function getChartBarSpacingOptions(paneId, chartWidth: number) {
+  const chartOptions = store.state[paneId] as ChartPaneState
+  const barSpacing = chartOptions.barSpacing || 3
+  return {
+    timeScale: {
+      barSpacing: barSpacing,
+      rightOffset: Math.ceil((chartWidth * 0.05) / barSpacing)
+    }
+  }
+}
+
+export function getChartScales(
+  indicators: {
+    [id: string]: IndicatorSettings
+  },
+  indicatorId?: string
+) {
+  return Object.values(indicators).reduce(
+    (scales, indicator) => {
+      if (
+        indicator.id !== indicatorId &&
+        indicator.options &&
+        indicator.options.priceScaleId &&
+        !scales[indicator.options.priceScaleId]
+      ) {
+        scales[indicator.options.priceScaleId] = indicator.name || indicator.id
+      }
+
+      return scales
+    },
+    {
+      ...(indicatorId ? { [indicatorId]: '📍 Own scale' } : {}),
+      left: '← LEFT',
+      right: '→ RIGHT'
+    }
+  )
+}
+
+export function getChartOptions(
+  baseOptions: DeepPartial<ChartOptions>,
+  paneId?: string
+): DeepPartial<ChartOptions> {
+  const baseChartOptions = Object.assign({}, baseOptions)
+
+  return merge(
+    baseChartOptions,
+    getChartLayoutOptions(),
+    getChartCrosshairOptions(),
+    getChartBorderOptions(paneId)
+  )
+}
+
+export function getChartCustomColorsOptions(paneId) {
+  return merge(
+    getChartLayoutOptions(),
+    getChartOptions(defaultChartOptions as any),
+    getChartWatermarkOptions(paneId),
+    getChartGridlinesOptions(paneId)
+  )
+}
+
+export function getDefaultIndicatorOptionValue(
+  key: string,
+  plotTypes: string[],
+  forceCompute?: boolean
+) {
+  if (!forceCompute && typeof computedDefaultValues[key] !== 'undefined') {
+    return computedDefaultValues[key]
+  }
+
+  if (plotTypes) {
+    for (const type of plotTypes) {
+      if (typeof defaultPlotsOptions[type][key] !== 'undefined') {
+        computedDefaultValues[key] = defaultPlotsOptions[type][key]
+        return computedDefaultValues[key]
+      }
+    }
+  }
+
+  if (typeof defaultSerieOptions[key] !== 'undefined') {
+    computedDefaultValues[key] = defaultSerieOptions[key]
     return defaultSerieOptions[key]
   }
 
-  if (typeof value === 'undefined' && /length$/i.test(key)) {
-    return 14
+  if (/length$/i.test(key)) {
+    computedDefaultValues[key] = 14
+    return computedDefaultValues[key]
   }
 
-  if (typeof value === 'undefined' && /color$/i.test(key)) {
-    return '#c3a87a'
+  if (/color$/i.test(key)) {
+    computedDefaultValues[key] = getColor()
+    return computedDefaultValues[key]
   }
 
-  if (typeof value === 'undefined' && /width$/i.test(key)) {
-    return 1
+  if (/width$/i.test(key)) {
+    computedDefaultValues[key] = 1
+    return computedDefaultValues[key]
   }
 
-  return value
+  return null
+}
+
+export function getIndicatorOptionType(
+  key: string,
+  plotTypes: string[],
+  forceCompute?: any,
+  value?: any
+) {
+  if (!forceCompute && typeof computedOptionTypes[key] !== 'undefined') {
+    return computedOptionTypes[key]
+  }
+
+  if (typeof value === 'undefined') {
+    value = getDefaultIndicatorOptionValue(key, plotTypes, forceCompute)
+  }
+
+  let type = 'string'
+
+  let typedValue
+
+  try {
+    typedValue = JSON.parse(value)
+  } catch (error) {
+    typedValue = value
+    // empty
+  }
+
+  if (
+    typeof typedValue === 'boolean' ||
+    /^(show|toggle|set|use)[A-Z]/.test(key)
+  ) {
+    type = 'boolean'
+  } else if (
+    /color/i.test(key) ||
+    /^rgba?/.test(typedValue) ||
+    /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(typedValue)
+  ) {
+    type = 'color'
+  } else if (typeof typedValue === 'number') {
+    type = 'number'
+  }
+
+  computedOptionTypes[key] = type
+
+  return type
 }
 
 export function getIndicatorOptionValue(

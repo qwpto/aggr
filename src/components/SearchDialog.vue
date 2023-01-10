@@ -1,15 +1,11 @@
 <template>
-  <Dialog
-    @clickOutside="hide"
-    class="-sticky-footer -mobile-fs -internal-scroll -auto"
-    :class="[loading && '-loading']"
-  >
+  <Dialog @clickOutside="hide" class="search-dialog" ref="dialog">
     <template v-slot:header>
       <div v-if="paneId">
-        <div class="title">ADD/REMOVE SOURCES</div>
-        <div class="subtitle" style="opacity: 1">
+        <div class="dialog__title">ADD/REMOVE SOURCES</div>
+        <div class="dialog__subtitle">
           to
-          <span class="text-success" v-text="paneName"></span>
+          <u class="text-color-base" v-text="paneName"></u>
           pane
           <button
             type="button"
@@ -23,421 +19,359 @@
         </div>
       </div>
       <div v-else>
-        <div class="title">REPLACE SOURCES</div>
-        <div class="subtitle">across all panes</div>
+        <div class="dialog__title">REPLACE SOURCES</div>
+        <div class="dialog__subtitle">across all panes</div>
       </div>
       <div class="column -center"></div>
     </template>
-    <div class="search">
-      <div
-        class="search__side hide-scrollbar"
-        :class="{ '-show': mobileShowFilters }"
-      >
-        <section class="section">
-          <div v-if="sections.indexOf('extras') > -1" class="section__content">
-            <label class="checkbox-control -small mb4">
-              <input
-                type="checkbox"
-                class="form-control"
-                :checked="searchTypes.normalize"
-                @change="
-                  $store.commit('settings/TOGGLE_SEARCH_TYPE', 'normalize')
-                "
-              />
-              <div></div>
-              <span>Group by pair</span>
-            </label>
-            <label class="checkbox-control -small mb4">
-              <input
-                type="checkbox"
-                class="form-control"
-                :checked="searchTypes.mergeUsdt"
-                @change="
-                  $store.commit('settings/TOGGLE_SEARCH_TYPE', 'mergeUsdt')
-                "
-              />
-              <div></div>
-              <span>Merge stablecoins</span>
-            </label>
-            <label class="checkbox-control -small mb4">
-              <input
-                type="checkbox"
-                class="form-control"
-                :checked="searchTypes.historical"
-                @change="
-                  $store.commit('settings/TOGGLE_SEARCH_TYPE', 'historical')
-                "
-              />
-              <div></div>
-              <span>With historical data</span>
-            </label>
-            <label class="checkbox-control -small mb4">
-              <input
-                type="checkbox"
-                class="form-control"
-                :checked="searchTypes.recent"
-                @change="$store.commit('settings/TOGGLE_SEARCH_TYPE', 'recent')"
-              />
-              <div></div>
-              <span>Show recents</span>
-            </label>
-          </div>
-          <div
-            class="section__title"
-            @click="$store.commit('settings/TOGGLE_SEARCH_PANEL', 'extras')"
-          >
-            Extras <i class="icon-up-thin"></i>
-          </div>
-        </section>
-
-        <section class="section">
-          <div
-            class="section__content"
-            v-if="sections.indexOf('exchanges') > -1"
-          >
-            <label
-              class="section__controls checkbox-control -small mb4 flex-right"
-            >
-              <input
-                type="checkbox"
-                class="form-control"
-                :checked="allExchangesEnabled"
-                @change="toggleAll"
-              />
-              <div></div>
-            </label>
-            <template v-for="id of exchanges">
-              <label
-                class="checkbox-control -small mb4 -custom hide-scrollbar"
-                :key="id"
-                v-if="!$store.state.exchanges[id].disabled"
-              >
-                <input
-                  type="checkbox"
-                  class="form-control"
-                  :checked="searchExchanges[id] !== false"
-                  @click="toggleExchange($event, id)"
-                />
-                <div :class="'icon-' + id"></div>
-                <span>
-                  <span v-text="id"></span>
-                  <a
-                    v-if="canRefreshProducts"
-                    href="javascript:void(0);"
-                    class="-text"
-                    @click.stop="refreshExchangeProducts(id)"
-                    :title="`Refresh ${id}'s products`"
-                    v-tippy="{ boundary: 'window', placement: 'left' }"
-                  >
-                    <i class="icon-refresh ml8 mr8"></i>
-                  </a>
-                </span>
-              </label>
-            </template>
-          </div>
-          <div
-            class="section__title text-muted mb8"
-            @click="$store.commit('settings/TOGGLE_SEARCH_PANEL', 'exchanges')"
-          >
-            Exchanges
-            <a
-              v-if="canRefreshProducts"
-              href="javascript:void(0);"
-              class="refresh-all -text"
-              @click.stop="refreshExchangeProducts()"
-              title="Refresh all exchange's products"
-              v-tippy
-            >
-              <i class="icon-refresh ml8 mr8"></i>
-            </a>
-            <i class="icon-up-thin"></i>
-          </div>
-        </section>
-
-        <section class="section mb16">
-          <div class="section__content" v-if="sections.indexOf('types') > -1">
-            <label class="checkbox-control -small mb4">
-              <input
-                type="checkbox"
-                class="form-control"
-                :checked="searchTypes.spots"
-                @change="$store.commit('settings/TOGGLE_SEARCH_TYPE', 'spots')"
-              />
-              <div></div>
-              <span>Spots</span>
-            </label>
-            <label class="checkbox-control -small mb4">
-              <input
-                type="checkbox"
-                class="form-control"
-                :checked="searchTypes.perpetuals"
-                @change="
-                  $store.commit('settings/TOGGLE_SEARCH_TYPE', 'perpetuals')
-                "
-              />
-              <div></div>
-              <span>Perpetuals</span>
-            </label>
-            <label class="checkbox-control -small mb4">
-              <input
-                type="checkbox"
-                class="form-control"
-                :checked="searchTypes.futures"
-                @change="
-                  $store.commit('settings/TOGGLE_SEARCH_TYPE', 'futures')
-                "
-              />
-              <div></div>
-              <span>Futures</span>
-            </label>
-          </div>
-          <div
-            class="section__title text-muted mb8"
-            @click="$store.commit('settings/TOGGLE_SEARCH_PANEL', 'types')"
-          >
-            Type
-            <i class="icon-up-thin"></i>
-          </div>
-        </section>
-        <section class="section">
-          <div class="section__content" v-if="sections.indexOf('quotes') > -1">
-            <label
-              class="checkbox-control -small mb4"
-              v-for="quote of quoteCurrencies"
-              :key="quote"
-            >
-              <input
-                type="checkbox"
-                class="form-control"
-                :checked="
-                  searchQuotes[quote] === true ||
-                  searchQuotes[quote] === undefined
-                "
-                @change="
-                  $store.commit('settings/TOGGLE_SEARCH_QUOTE', {
-                    key: quote,
-                    value: $event.target.checked
-                  })
-                "
-              />
-              <div></div>
-              <span>{{ quote }}</span>
-            </label>
-          </div>
-          <div
-            class="section__title text-muted mb8"
-            @click="$store.commit('settings/TOGGLE_SEARCH_PANEL', 'quotes')"
-          >
-            Quote currency
-            <i class="icon-up-thin"></i>
-          </div>
-        </section>
-      </div>
-      <div class="search__wrapper hide-scrollbar">
-        <div
-          class="search-selection search__tags form-control"
-          :class="groupsCount < 10 && '-sticky'"
-          @click="$refs.input.focus()"
-          ref="selection"
-        >
-          <div v-if="selection.length" class="search-selection__controls">
-            <button
-              class="btn -text"
-              @click="$store.commit('settings/TOGGLE_SEARCH_TYPE', 'normalize')"
-              title="Toggle grouping"
-              v-tippy="{ boundary: 'window', placement: 'bottom' }"
-            >
-              <i class="icon-merge"></i>
-            </button>
-            <button
-              class="btn -text"
-              @click="clearSelection"
-              title="Clear"
-              v-tippy="{ boundary: 'window', placement: 'bottom' }"
-            >
-              <i class="icon-eraser"></i>
-            </button>
-          </div>
-          <template v-if="searchTypes.normalize">
-            <button
-              v-for="(markets, localPair) of groupedSelection"
-              :key="localPair"
-              class="btn -pill"
-              :title="'Click to remove ' + markets.join(', ')"
-              @click.stop.prevent="deselectWhileRetainingScroll(markets)"
-            >
-              <span
-                v-if="markets.length > 1"
-                class="badge -compact ml8"
-                v-text="markets.length"
-              ></span>
-              <span v-text="localPair"></span>
-            </button>
-          </template>
-          <template v-else>
-            <button
-              v-for="market of selection"
-              :key="market"
-              class="btn"
-              :class="{ '-green': activeMarkets.indexOf(market) !== -1 }"
-              title="Click to remove"
-              @click.stop.prevent="deselectWhileRetainingScroll(market)"
-              v-text="market"
-            ></button>
-          </template>
+    <div
+      class="search-dialog__side hide-scrollbar"
+      :class="{ '-show': mobileShowFilters }"
+    >
+      <ToggableSection title="Extras" persistent id="search-extras">
+        <label class="checkbox-control -small mb4">
           <input
-            ref="input"
-            type="text"
-            placeholder="Search"
-            :value="query"
-            @input=";(page = 0), (query = $event.target.value)"
+            type="checkbox"
+            class="form-control"
+            :checked="searchTypes.normalize"
+            @change="$store.commit('settings/TOGGLE_SEARCH_TYPE', 'normalize')"
           />
-        </div>
-        <div class="search__results">
-          <div
-            v-if="searchTypes.recent && previousSearchSelections.length"
-            class="search-recent-searches"
+          <div></div>
+          <span>Group by pair</span>
+        </label>
+        <label class="checkbox-control -small mb4">
+          <input
+            type="checkbox"
+            class="form-control"
+            :checked="searchTypes.mergeUsdt"
+            @change="$store.commit('settings/TOGGLE_SEARCH_TYPE', 'mergeUsdt')"
+          />
+          <div></div>
+          <span>Merge stablecoins</span>
+        </label>
+        <label class="checkbox-control -small mb4">
+          <input
+            type="checkbox"
+            class="form-control"
+            :checked="searchTypes.historical"
+            @change="$store.commit('settings/TOGGLE_SEARCH_TYPE', 'historical')"
+          />
+          <div></div>
+          <span>With historical data</span>
+        </label>
+        <label class="checkbox-control -small mb4">
+          <input
+            type="checkbox"
+            class="form-control"
+            :checked="searchTypes.recent"
+            @change="$store.commit('settings/TOGGLE_SEARCH_TYPE', 'recent')"
+          />
+          <div></div>
+          <span>Show recents</span>
+        </label>
+      </ToggableSection>
+
+      <ToggableSection title="Exchanges" id="search-exchanges">
+        <template v-for="id of exchanges">
+          <label
+            class="checkbox-control -small mb4 -custom hide-scrollbar"
+            :key="id"
+            v-if="!$store.state.exchanges[id].disabled"
           >
-            <carousel class="search__tags">
-              <button
+            <input
+              type="checkbox"
+              class="form-control"
+              :checked="searchExchanges[id] !== false"
+              @click="toggleExchange($event, id)"
+            />
+            <div :class="'icon-' + id"></div>
+            <span>
+              <span v-text="id"></span>
+              <a
+                v-if="canRefreshProducts"
+                href="javascript:void(0);"
+                class="-text"
+                @click.stop="refreshExchangeProducts(id)"
+                :title="`Refresh ${id}'s products`"
+                v-tippy="{ boundary: 'window', placement: 'left' }"
+              >
+                <i class="icon-refresh ml8 mr8"></i>
+              </a>
+            </span>
+          </label>
+        </template>
+        <template v-slot:control>
+          <label class="checkbox-control -small flex-right">
+            <input
+              type="checkbox"
+              class="form-control"
+              :checked="allExchangesEnabled"
+              @change="toggleAll"
+            />
+            <div></div>
+          </label>
+        </template>
+      </ToggableSection>
+
+      <ToggableSection title="Type" id="search-type">
+        <label class="checkbox-control -small mb4">
+          <input
+            type="checkbox"
+            class="form-control"
+            :checked="searchTypes.spots"
+            @change="$store.commit('settings/TOGGLE_SEARCH_TYPE', 'spots')"
+          />
+          <div></div>
+          <span>Spots</span>
+        </label>
+        <label class="checkbox-control -small mb4">
+          <input
+            type="checkbox"
+            class="form-control"
+            :checked="searchTypes.perpetuals"
+            @change="$store.commit('settings/TOGGLE_SEARCH_TYPE', 'perpetuals')"
+          />
+          <div></div>
+          <span>Perpetuals</span>
+        </label>
+        <label class="checkbox-control -small mb4">
+          <input
+            type="checkbox"
+            class="form-control"
+            :checked="searchTypes.futures"
+            @change="$store.commit('settings/TOGGLE_SEARCH_TYPE', 'futures')"
+          />
+          <div></div>
+          <span>Futures</span>
+        </label>
+      </ToggableSection>
+
+      <ToggableSection title="Quote currency" id="search-quotes">
+        <label
+          class="checkbox-control -small mb4"
+          v-for="quote of quoteCurrencies"
+          :key="quote"
+        >
+          <input
+            type="checkbox"
+            class="form-control"
+            :checked="
+              searchQuotes[quote] === true || searchQuotes[quote] === undefined
+            "
+            @change="
+              $store.commit('settings/TOGGLE_SEARCH_QUOTE', {
+                key: quote,
+                value: $event.target.checked
+              })
+            "
+          />
+          <div></div>
+          <span>{{ quote }}</span>
+        </label>
+      </ToggableSection>
+    </div>
+    <div class="search-dialog__wrapper hide-scrollbar">
+      <div
+        class="search-dialog-selection search-dialog__tags form-control"
+        :class="groupsCount < 10 && '-sticky'"
+        @click="$refs.input.focus()"
+        ref="selection"
+      >
+        <div v-if="selection.length" class="search-dialog-selection__controls">
+          <button
+            class="btn -text"
+            @click="$store.commit('settings/TOGGLE_SEARCH_TYPE', 'normalize')"
+            title="Toggle grouping"
+            v-tippy="{ boundary: 'window', placement: 'bottom' }"
+          >
+            <i class="icon-merge"></i>
+          </button>
+          <button
+            class="btn -text"
+            @click="clearSelection"
+            title="Clear"
+            v-tippy="{ boundary: 'window', placement: 'bottom' }"
+          >
+            <i class="icon-eraser"></i>
+          </button>
+        </div>
+        <template v-if="searchTypes.normalize">
+          <button
+            v-for="(markets, localPair) of groupedSelection"
+            :key="localPair"
+            class="btn -pill"
+            :title="'Click to remove ' + markets.join(', ')"
+            @click.stop.prevent="deselectWhileRetainingScroll(markets)"
+          >
+            <span
+              v-if="markets.length > 1"
+              class="badge -red ml8"
+              v-text="markets.length"
+            ></span>
+            <span v-text="localPair"></span>
+          </button>
+        </template>
+        <template v-else>
+          <button
+            v-for="market of selection"
+            :key="market"
+            class="btn"
+            :class="{ '-green': activeMarkets.indexOf(market) !== -1 }"
+            title="Click to remove"
+            @click.stop.prevent="deselectWhileRetainingScroll(market)"
+            v-text="market"
+          ></button>
+        </template>
+        <input
+          ref="input"
+          type="text"
+          placeholder="Search"
+          :value="query"
+          @input=";(page = 0), (query = $event.target.value)"
+        />
+      </div>
+      <div class="search-dialog__results">
+        <template v-if="results.length">
+          <div v-if="page > 0" class="d-flex mt8">
+            <button class="mx8 btn -text mlauto switch-page" @click="showLess">
+              ... go page {{ page }}
+            </button>
+          </div>
+          <table
+            class="table mt8 search-dialog-recents table--inset"
+            v-if="
+              searchTypes.recent &&
+              previousSearchSelections.length &&
+              !query.length
+            "
+          >
+            <thead>
+              <tr>
+                <th colspan="100%">
+                  Search history
+                  <button
+                    class="btn -small -text"
+                    @click="toggleType('recent')"
+                  >
+                    <i class="icon-cross"></i>
+                  </button>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
                 v-for="savedSelection of previousSearchSelections"
                 :key="savedSelection.label"
-                class="btn -pill -small"
+                class="-action"
                 :title="savedSelection.markets.join(', ')"
                 @click="selectMarkets(savedSelection.markets, $event.shiftKey)"
               >
-                <span
-                  v-if="savedSelection.count > 1"
-                  class="badge -invert ml8"
-                  v-text="savedSelection.markets.length"
-                ></span>
-                <span>{{ savedSelection.label }}</span>
-              </button>
-            </carousel>
+                <td class="search-dialog-recents__label">
+                  {{ savedSelection.label }}
+                  <span
+                    v-if="savedSelection.count > 1"
+                    class="badge -invert ml8"
+                    v-text="savedSelection.markets.length"
+                  ></span>
+                </td>
+                <td
+                  class="search-dialog-recents__markets table-ellipsis text-nowrap"
+                >
+                  <small>{{ savedSelection.markets.join(', ') }}</small>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <table class="table mt8 table--inset" v-if="searchTypes.normalize">
+            <tbody>
+              <tr
+                v-for="(group, index) in results"
+                :key="group.localPair"
+                @click="selectMarkets(group.markets)"
+                :class="{ active: activeIndex === index }"
+                class="-action"
+              >
+                <td v-text="group.localPair" class="text-color-base"></td>
+                <td class="text-color-300">
+                  <small v-text="group.markets.join(', ')"></small>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <table v-else class="table table--inset mt8">
+            <tbody>
+              <tr
+                v-for="(market, index) of results"
+                :key="market.id"
+                @click="selectMarket(market.id)"
+                :class="{ active: activeIndex === index }"
+                class="-action"
+              >
+                <td
+                  class="icon search-dialog__exchange text-center text-color-base"
+                  :class="'icon-' + market.exchange"
+                ></td>
+                <td v-text="market.exchange"></td>
+                <td v-text="market.pair"></td>
+                <td v-text="market.type"></td>
+                <td class="text-center">
+                  <i
+                    v-if="historicalMarkets.indexOf(market.id) !== -1"
+                    class="icon-candlestick"
+                    title="historical data available for this market"
+                  ></i>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="mt8 d-flex">
+            <button class="mx8 btn -text" @click="addAll">
+              <i class="icon-plus mr8"></i> add all of the above
+            </button>
             <button
-              class="btn -outline search-history__clear"
-              v-tippy
-              title="Clear recent searches<br><i>💡 SHIFT+CLIC to delete 1 item</i>"
+              class="btn -text mlauto switch-page"
+              @click="showMore"
+              v-if="results.length === resultsPerPage"
             >
-              <i
-                class="icon-trash -small"
-                @click="$store.commit('settings/CLEAR_SEARCH_HISTORY')"
-              ></i>
+              go page {{ page + 2 }} ...
             </button>
           </div>
-          <template v-if="results.length">
-            <div v-if="page > 0" class="d-flex mt8">
-              <button class="btn -text mlauto switch-page" @click="showLess">
-                ... go page {{ page }}
-              </button>
-            </div>
+        </template>
+        <p class="mb0 pb0 ml16" v-else-if="query.length">
+          <span class="text-muted">No results found for "{{ query }}".</span>
+          <br />
 
-            <table class="table mt8" v-if="searchTypes.normalize">
-              <tbody>
-                <tr
-                  v-for="(group, index) in results"
-                  :key="group.localPair"
-                  @click="selectMarkets(group.markets)"
-                  :class="{ active: activeIndex === index }"
-                  class="-action"
-                >
-                  <td v-text="group.localPair"></td>
-                  <td>
-                    <small v-text="group.markets.join(', ')"></small>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <table v-else class="table mt8">
-              <tbody>
-                <tr
-                  v-for="(market, index) of results"
-                  :key="market.id"
-                  @click="selectMarket(market.id)"
-                  :class="{ active: activeIndex === index }"
-                  class="-action"
-                >
-                  <td
-                    class="icon search__exchange text-center"
-                    :class="'icon-' + market.exchange"
-                  ></td>
-                  <td v-text="market.exchange"></td>
-                  <td v-text="market.pair"></td>
-                  <td v-text="market.type"></td>
-                  <td class="text-center">
-                    <i
-                      v-if="historicalMarkets.indexOf(market.id) !== -1"
-                      class="icon-candlestick"
-                      title="historical data available for this market"
-                    ></i>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-
-            <div class="mt8 d-flex">
-              <button class="btn -text" @click="addAll">
-                <i class="icon-plus mr8"></i> add all of the above
-              </button>
-              <button
-                class="btn -text mlauto switch-page"
-                @click="showMore"
-                v-if="results.length === resultsPerPage"
-              >
-                go page {{ page + 2 }} ...
-              </button>
-            </div>
-          </template>
-          <p class="mb0 pb0" v-else-if="query.length">
-            <span class="text-muted">No results found for "{{ query }}".</span>
-            <br />
-
-            <button
-              v-if="hasFilters || !allExchangesEnabled"
-              class="btn -cases -text"
-              @click="clearFilters"
-            >
-              <i class="icon-refresh"></i> Retry without filters
-            </button>
-          </p>
-        </div>
+          <button
+            v-if="hasFilters || !allExchangesEnabled"
+            class="btn -cases -text"
+            @click="clearFilters"
+          >
+            <i class="icon-eraser mr8"></i> remove filters
+          </button>
+        </p>
       </div>
     </div>
 
-    <footer>
+    <template v-slot:footer>
       <a
         href="javascript:void(0);"
-        class="btn -text mrauto search__side-toggle"
+        class="btn -text mrauto search-dialog__side-toggle"
         @click="mobileShowFilters = !mobileShowFilters"
-        v-text="mobileShowFilters ? 'Hide filters' : 'Show filters'"
+      >
+        <i class="icon-cog"></i
       ></a>
       <a href="javascript:void(0);" class="btn -text" @click="hide">Cancel</a>
-      <button
-        class="btn -large ml8 -green"
-        @click="submit"
-        :class="loading && '-loading'"
-      >
+      <btn class="-large -green ml8" @click.native="submit" :loading="loading">
         {{ submitLabel }}
-        <div v-if="loading" class="lds-spinner -center">
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-        </div>
-      </button>
-    </footer>
+      </btn>
+    </template>
   </Dialog>
 </template>
 
 <script>
+import Btn from '@/components/framework/Btn.vue'
 import Dialog from '@/components/framework/Dialog.vue'
 import DialogMixin from '@/mixins/dialogMixin'
 import { copyTextToClipboard, getBucketId } from '@/utils/helpers'
@@ -450,15 +384,16 @@ import {
   getExchangeSymbols,
   ensureIndexedProducts
 } from '@/services/productsService'
-import Carousel from '@/components/framework/Carousel.vue'
+import ToggableSection from '@/components/framework/ToggableSection.vue'
 
 const RESULTS_PER_PAGE = 25
 
 export default {
   mixins: [DialogMixin],
   components: {
+    ToggableSection,
     Dialog,
-    Carousel
+    Btn
   },
   props: {
     paneId: {
@@ -492,9 +427,6 @@ export default {
     ]
   }),
   computed: {
-    sections() {
-      return this.$store.state.settings.searchSections
-    },
     previousSearchSelections() {
       return this.$store.state.settings.previousSearchSelections
     },
@@ -877,7 +809,7 @@ export default {
         if (
           this.containMultipleMarketsConfigurations() &&
           !(await dialogService.confirm(
-            'Are you sure ? Some of the panes are watching specific markets.'
+            `Override the other panes market filters`
           ))
         ) {
           return
@@ -1118,26 +1050,27 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-.search {
-  display: flex;
-  align-items: stretch;
-  height: 100%;
-  overflow: hidden;
+.search-dialog {
+  ::v-deep .dialog__content {
+    .dialog__body {
+      padding: 0;
+      flex-direction: row;
+      align-items: stretch;
+      overflow: hidden;
+    }
+
+    .dialog__subtitle {
+      color: var(--theme-color-o75);
+      opacity: 1;
+    }
+  }
 
   &__side {
     width: 12.5rem;
     min-width: 12.5rem;
     overflow: auto;
 
-    .section {
-      background: 0;
-
-      &:not(:last-child) .section__title:first-child {
-        padding-bottom: 0;
-      }
-    }
-
-    @media screen and (max-width: 550px) {
+    .dialog--small & {
       display: none;
 
       &.-show {
@@ -1146,7 +1079,7 @@ export default {
     }
 
     &-toggle {
-      @media screen and (min-width: 550px) {
+      .dialog:not(.dialog--small):not(.dialog--small) & {
         display: none;
       }
     }
@@ -1154,9 +1087,6 @@ export default {
 
   &__wrapper {
     flex-grow: 1;
-    width: 650px;
-    max-width: 650px;
-    padding: 0 1rem 1rem;
     overflow: auto;
 
     @media screen and (min-width: 551px) {
@@ -1168,6 +1098,7 @@ export default {
     table {
       border: 0;
       border-collapse: collapse;
+      margin: 0;
       width: 100%;
     }
 
@@ -1188,7 +1119,7 @@ export default {
     > input {
       margin-bottom: 4px;
       margin-right: 5px;
-      height: 32px;
+      height: 34px;
     }
 
     input {
@@ -1202,6 +1133,19 @@ export default {
     }
   }
 
+  &-recents {
+    &__label {
+      min-width: 0;
+      width: 0;
+      white-space: nowrap;
+    }
+    &__markets {
+      display: none;
+      @media screen and (min-width: 550px) {
+        display: table-cell;
+      }
+    }
+  }
   &-selection {
     position: relative;
     min-width: 19rem;
@@ -1212,7 +1156,7 @@ export default {
     &.-sticky {
       @media screen and (min-width: 550px) {
         backdrop-filter: blur(0.25rem);
-        background-color: var(--theme-background-o20);
+        background-color: var(--theme-background-o75);
         position: sticky;
         top: 0;
         z-index: 2;
@@ -1224,51 +1168,7 @@ export default {
       position: absolute;
       top: 0;
       right: 0;
-      margin: 6px 0 6px 6px;
-    }
-  }
-
-  &-recent-searches {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: var(--theme-color-o10);
-    margin-top: 0.5rem;
-
-    small {
-      text-transform: uppercase;
-    }
-
-    &__clear {
-      padding: 0;
-      margin: 0.25rem 1rem;
-    }
-
-    .search__tags {
-      padding: 0;
-      max-width: 100%;
-      overflow: hidden;
-      flex-grow: 1;
-      padding: 0.25rem 0.5rem;
-
-      button,
-      button:hover {
-        background: none;
-        border: 1px dashed currentColor;
-        height: 24px;
-      }
-    }
-  }
-  .section {
-    &__controls {
-      top: 0.75rem;
-      right: 0.75rem;
-      font-size: 0.875em;
-      z-index: 1;
-    }
-
-    label {
-      overflow-y: auto;
+      margin: 6px;
     }
   }
 
@@ -1281,14 +1181,5 @@ export default {
       visibility: visible;
     }
   }
-}
-
-.search .switch-page {
-  height: 0;
-  display: block;
-  padding: 0;
-  line-height: 0;
-  border: 0;
-  background: 0 !important;
 }
 </style>

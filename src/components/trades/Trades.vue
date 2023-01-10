@@ -228,7 +228,7 @@ export default class extends Mixins(PaneMixin) {
       const amount =
         size * (this.$store.state.settings.preferQuoteCurrencySize ? price : 1)
       const trade: Trade = {
-        timestamp: (timestamp as unknown) as number,
+        timestamp: timestamp as unknown as number,
         exchange,
         pair,
         price,

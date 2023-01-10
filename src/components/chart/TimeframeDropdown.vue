@@ -4,7 +4,7 @@
       <timeframe-input
         @input="onInput"
         @submit="addTimeframe"
-        placeholder="enter tf."
+        placeholder="ex 1m"
         class="timeframe-dropdown__input"
       />
       <div
@@ -13,45 +13,52 @@
       >
         ~ {{ typeaheadTimeframe.label }}
       </div>
-      <button type="button" class="btn -text" @click="toggleEdit">
+      <button
+        v-if="!typeaheadTimeframe"
+        type="button"
+        class="btn -text"
+        @click="toggleEdit"
+      >
         <i :class="editing ? 'icon-cross' : 'icon-edit'"></i>
       </button>
+      <button
+        v-else
+        type="button"
+        class="btn -text"
+        @click="addTimeframe(typeaheadTimeframe.value, true)"
+      >
+        <i class="icon-save"></i>
+      </button>
     </div>
-    <section
+    <ToggableSection
       v-for="group in groups"
       :key="group.title"
-      class="section section--small"
+      :id="`timeframe-${group.title}`"
+      :title="group.title"
+      small
     >
-      <div
-        v-if="timeframeGroups.indexOf(group.title) !== -1"
-        class="section__content"
+      <button
+        v-for="timeframe in group.timeframes"
+        :key="timeframe.value"
+        type="button"
+        class="dropdown-item dropdown-item--space-between timeframe-option"
+        @click="$emit('timeframe', timeframe.value)"
       >
-        <button
-          v-for="timeframe in group.timeframes"
-          :key="timeframe.value"
-          type="button"
-          class="dropdown-item dropdown-item--space-between"
-          @click="$emit('timeframe', timeframe.value)"
-        >
-          <span>{{ timeframe.label }}</span>
+        <span>{{ timeframe.label }}</span>
 
-          <i
-            v-if="editing"
-            class="icon-trash"
-            @click.stop="removeTimeframe(timeframe.value)"
-          ></i>
-          <i
-            v-else
-            class="icon-star"
-            :class="{ 'icon-star-filled': favoriteTimeframes[timeframe.value] }"
-            @click.stop="toggleFavoriteTimeframe(timeframe.value)"
-          ></i>
-        </button>
-      </div>
-      <div class="section__title" @click.stop="toggleGroup(group)">
-        {{ group.title }} <i class="icon-up-thin"></i>
-      </div>
-    </section>
+        <i
+          v-if="editing"
+          class="icon-trash"
+          @click.stop="removeTimeframe(timeframe.value)"
+        ></i>
+        <i
+          v-else
+          class="icon-star"
+          :class="{ 'icon-star-filled': favoriteTimeframes[timeframe.value] }"
+          @click.stop="toggleFavoriteTimeframe(timeframe.value)"
+        ></i>
+      </button>
+    </ToggableSection>
   </div>
 </template>
 
@@ -59,11 +66,13 @@
 import { Component, Vue } from 'vue-property-decorator'
 import TimeframeInput from '@/components/chart/TimeframeInput.vue'
 import { getTimeframeForHuman } from '@/utils/helpers'
+import ToggableSection from '@/components/framework/ToggableSection.vue'
 
 @Component({
   name: 'TimeframeDropdown',
   components: {
-    TimeframeInput
+    TimeframeInput,
+    ToggableSection
   },
   props: {
     paneId: {
@@ -150,14 +159,14 @@ export default class extends Vue {
     this.$store.commit('settings/TOGGLE_FAVORITE_TIMEFRAME', timeframe)
   }
 
-  addTimeframe(value) {
+  addTimeframe(value, save?: boolean) {
     if (!value) {
       return
     }
 
     this.$store.commit(this.paneId + '/SET_TIMEFRAME', value)
 
-    if (!this.timeframes.find(timeframe => timeframe.value == value)) {
+    if (save && !this.timeframes.find(timeframe => timeframe.value == value)) {
       this.$store.commit('settings/ADD_TIMEFRAME', value)
 
       this.$store.dispatch('app/showNotice', {
@@ -195,10 +204,16 @@ export default class extends Vue {
   &__header {
     &.dropdown-item {
       padding: 0;
+      background-color: var(--theme-background-150);
     }
 
     button {
       visibility: hidden;
+      color: var(--theme-color-100);
+
+      &:hover {
+        color: var(--theme-color-base);
+      }
     }
 
     &:hover {
@@ -210,24 +225,6 @@ export default class extends Vue {
 
   &__input {
     padding: 0.5rem;
-  }
-}
-
-.section {
-  background: 0;
-
-  &__content {
-    margin: -0.5rem;
-  }
-
-  &__title {
-    opacity: 0.5;
-  }
-
-  &:hover {
-    .section__title {
-      opacity: 1;
-    }
   }
 }
 
@@ -244,6 +241,10 @@ export default class extends Vue {
   &:hover {
     .icon-star {
       display: block;
+
+      &:hover {
+        color: var(--theme-buy-100);
+      }
     }
   }
 }

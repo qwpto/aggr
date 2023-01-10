@@ -329,7 +329,8 @@ export default class SerieBuilder {
   }
 
   parseVariables(output, variables): string {
-    const VARIABLE_REGEX = /(?:^|\n)\s*((?:var )?[a-zA-Z0-9_]+)\(?(\d*)\)?\s*=\s*([^\n;,]*)?/
+    const VARIABLE_REGEX =
+      /(?:^|\n)\s*((?:var )?[a-zA-Z0-9_]+)\(?(\d*)\)?\s*=\s*([^\n;,]*)?/
     let variableMatch = null
     let iterations = 0
 
@@ -572,13 +573,13 @@ export default class SerieBuilder {
         const targetFunction = seriesUtils[functionName]
 
         if (!targetFunction) {
-          if (/for|if|rgba/i.test(functionName)) {
-            FUNCTION_LOOKUP_REGEX.lastIndex =
-              functionMatch.index + functionMatch[0].length
+          //if (/for|if|rgba/i.test(functionName)) {
+          FUNCTION_LOOKUP_REGEX.lastIndex =
+            functionMatch.index + functionMatch[0].length
+          continue
+          /*} else {
             continue
-          } else {
-            throw new Error(`Function ${functionName} doesn't exists`)
-          }
+          }*/
         }
 
         const instruction: IndicatorFunction = {
@@ -649,7 +650,8 @@ export default class SerieBuilder {
   }
 
   parseMarkets(output: string, markets: IndicatorMarkets): string {
-    const EXCHANGE_REGEX = /\b([A-Z_]{3,}:[a-zA-Z0-9/_-]{5,})(:[\w]{4,})?\.?([a-z]{3,})?\b/g
+    const EXCHANGE_REGEX =
+      /\b([A-Z_]{3,}:[a-zA-Z0-9/_-]{5,})(:[\w]{4,})?\.?([a-z]{3,})?\b/g
 
     let marketMatch = null
     let iterations = 0
@@ -839,7 +841,7 @@ export default class SerieBuilder {
   }
 
   getAdapter(output) {
-    return (function() {
+    return (function () {
       'use strict'
       return new Function(
         'renderer',

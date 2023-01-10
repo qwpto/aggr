@@ -293,9 +293,6 @@ export function getMarketProduct(exchangeId, symbol, noStable?: boolean) {
   let localSymbolAlpha = localSymbol.replace(/[-_/:]/, '')
 
   let match
-  if (exchangeId === 'POLONIEX' && symbol === 'BTC_USDT') {
-    debugger
-  }
   match = localSymbol.match(baseQuoteLookupKnown)
 
   if (!match) {

@@ -10,21 +10,23 @@
         @mousedown="handleMove"
         @touchstart="handleMove"
       >
-        <i class="icon-move mr8"></i> {{ priceScale.indicators.join(', ') }}
-        <span
-          v-if="priceScaleId === 'right'"
-          title="Main scale"
+        <i class="icon-move mr8"></i>
+        <code>{{ priceScale.indicators.join(', ') }}</code>
+        <code
+          v-if="priceScaleId === 'left' || priceScaleId === 'right'"
+          :title="`using ${priceScaleId} scale`"
           v-tippy
           class="ml4"
-          >👑</span
         >
-
+          {{ priceScaleId === 'left' ? '← LEFT' : '→ RIGHT' }}
+        </code>
         <dropdown-button
           :options="modes"
           v-model="priceScale.mode"
           placeholder="linear"
           @input="updateMode($event)"
-          class="chart-pricescale__mode -text -small ml8 text-bold -arrow"
+          button-class="badge -outline"
+          class="chart-pricescale__mode -small ml8 text-bold"
         >
         </dropdown-button>
       </div>
@@ -72,12 +74,12 @@ import DropdownButton from '@/components/framework/DropdownButton.vue'
     }
   },
   watch: {
-    'priceScale.scaleMargins.top': function() {
+    'priceScale.scaleMargins.top': function () {
       if (!this.currentMoveId) {
         this.getSize()
       }
     },
-    'priceScale.scaleMargins.bottom': function() {
+    'priceScale.scaleMargins.bottom': function () {
       if (!this.currentMoveId) {
         this.getSize()
       }
@@ -257,16 +259,6 @@ export default class extends Vue {
   }
 
   start(side: 'top' | 'bottom' | 'both', origin: number) {
-    /* const siblings = (this.$el.parentElement.children as unknown) as HTMLElement[]
-
-    for (const el of siblings) {
-      if (el === this.$el) {
-        el.style.zIndex = '1'
-      } else {
-        el.style.zIndex = ''
-      }
-    } */
-
     this.currentMoveId = randomString(8)
     this.currentSide = side
     this.currentOrigin = origin
@@ -283,8 +275,8 @@ export default class extends Vue {
   pointer-events: none;
 
   .pane-overlay {
-    border-radius: 4px 0 0 4px;
-    background-color: var(--theme-background-base);
+    border-radius: 4px;
+    background-color: var(--theme-background-100);
     box-shadow: 0 0.2rem 1rem rgb(0 0 0 / 20%);
   }
 
@@ -295,7 +287,7 @@ export default class extends Vue {
     }
 
     .chart-pricescale__content:before {
-      opacity: 0.1;
+      display: block;
     }
   }
 
@@ -310,7 +302,7 @@ export default class extends Vue {
       display: none;
       content: '';
       position: absolute;
-      border-top: 2px dashed white;
+      border-top: 1px dashed var(--theme-color-100);
       width: 100%;
       margin: 0.5em 0;
     }
@@ -348,12 +340,12 @@ export default class extends Vue {
     cursor: move;
 
     &:before {
+      display: none;
       content: '';
       position: absolute;
       width: 100%;
       height: 100%;
-      background-color: var(--theme-color-base);
-      opacity: 0.05;
+      background-color: var(--theme-base);
     }
   }
 
@@ -363,14 +355,14 @@ export default class extends Vue {
     position: absolute;
     top: 0.5em;
     left: 0.5em;
-    padding: 0.5em;
+    padding: 0.25em 0.375em 0.25em 0.25em;
     pointer-events: all;
     text-transform: uppercase;
     align-items: center;
     z-index: 2;
 
     .icon-move {
-      font-size: 0.75em;
+      color: var(--theme-color-200);
     }
   }
 
@@ -383,7 +375,7 @@ export default class extends Vue {
     position: absolute;
     bottom: 0.5em;
     right: 0.5em;
-    padding: 0.5em;
+    padding: 0.25em;
   }
 }
 </style>

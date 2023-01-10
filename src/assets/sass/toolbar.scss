@@ -16,9 +16,13 @@
     align-items: center;
     line-height: 1;
     font-family: $font-condensed;
-    font-size: 0.64em;
+    font-size: 0.625em;
     line-height: 1;
     padding: 0.15em 0.4em 0.25em;
     text-transform: none;
+  }
+
+  .btn__loader {
+    font-size: 0.625em;
   }
 }

@@ -77,7 +77,7 @@ const actions = {
     { commit, dispatch, state },
     options: Pane & { settings?: any; originalGridItem?: any }
   ) {
-    if (!panesSettings[options.type]) {
+    if (!panesSettings[options.type] && options.name.indexOf(':') === -1) {
       this.dispatch('app/showNotice', {
         title: 'Unrecognized pane type "' + options.type + '"',
         type: 'error'
@@ -356,8 +356,6 @@ const actions = {
 
     let initialZoom = 1
     const innerWidth = window.innerWidth
-
-    console.info('[panes/setupLayout] @' + innerWidth)
 
     if (innerWidth >= 768) {
       // start with desktop layout

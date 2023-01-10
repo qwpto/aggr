@@ -10,8 +10,11 @@ import {
   defaultChartOptions,
   defaultPlotsOptions,
   defaultSerieOptions,
-  getChartCustomColorsOptions,
-  getChartOptions
+  getChartBarSpacingOptions,
+  getChartCrosshairOptions,
+  getChartGridlinesOptions,
+  getChartOptions,
+  getChartWatermarkOptions
 } from './options'
 import store from '../../store'
 import seriesUtils from './serieUtils'
@@ -31,6 +34,7 @@ import {
   marketDecimals
 } from '@/services/productsService'
 import audioService from '../../services/audioService'
+import merge from 'lodash.merge'
 
 export interface Bar {
   vbuy?: number
@@ -313,36 +317,12 @@ export default class ChartController {
   createChart(containerElement: HTMLElement) {
     console.log(`[chart/${this.paneId}/controller] create chart`)
 
-    const chartOptions = getChartOptions(defaultChartOptions as any)
-
-    if (store.state[this.paneId].showVerticalGridlines) {
-      chartOptions.grid.vertLines.visible =
-        store.state[this.paneId].showVerticalGridlines
-      chartOptions.grid.vertLines.color =
-        store.state[this.paneId].verticalGridlinesColor
-    }
-
-    if (store.state[this.paneId].showHorizontalGridlines) {
-      chartOptions.grid.horzLines.visible =
-        store.state[this.paneId].showHorizontalGridlines
-      chartOptions.grid.horzLines.color =
-        store.state[this.paneId].horizontalGridlinesColor
-    }
-
-    if (store.state[this.paneId].showWatermark) {
-      chartOptions.watermark.visible = store.state[this.paneId].showWatermark
-      chartOptions.watermark.color = store.state[this.paneId].watermarkColor
-    }
-
-    const preferedBarSpacing = store.state[this.paneId].barSpacing
-
-    if (preferedBarSpacing) {
-      chartOptions.timeScale.barSpacing = store.state[this.paneId].barSpacing
-      chartOptions.timeScale.rightOffset = Math.ceil(
-        (containerElement.clientWidth * 0.05) /
-          chartOptions.timeScale.barSpacing
-      )
-    }
+    const chartOptions = merge(
+      getChartOptions(defaultChartOptions as any, this.paneId),
+      getChartWatermarkOptions(this.paneId),
+      getChartGridlinesOptions(this.paneId),
+      getChartBarSpacingOptions(this.paneId, containerElement.clientWidth)
+    )
 
     this.chartInstance = TV.createChart(containerElement, chartOptions)
     this.chartElement = containerElement
@@ -409,6 +389,8 @@ export default class ChartController {
       return
     } else if (key === 'priceFormat' && value.auto) {
       this.refreshAutoDecimals(id)
+    } else if (key === 'priceScaleId') {
+      this.ensurePriceScale(value, indicator)
     }
 
     for (let i = 0; i < indicator.apis.length; i++) {
@@ -578,8 +560,7 @@ export default class ChartController {
           ' | ' +
           getTimeframeForHuman(store.state[this.paneId].timeframe)
         }\u00A0\u00A0\u00A0\u00A0`,
-        visible: store.state[this.paneId].showWatermark,
-        color: store.state[this.paneId].watermarkColor
+        ...getChartWatermarkOptions(this.paneId).watermark
       }
     })
   }
@@ -2447,19 +2428,6 @@ export default class ChartController {
   }
 
   enableCrosshair() {
-    const chartColorOptions = getChartCustomColorsOptions()
-
-    this.chartInstance.applyOptions({
-      crosshair: {
-        vertLine: {
-          color: chartColorOptions.crosshair.vertLine.color,
-          labelVisible: true
-        },
-        horzLine: {
-          color: chartColorOptions.crosshair.horzLine.color,
-          labelVisible: true
-        }
-      }
-    })
+    this.chartInstance.applyOptions(getChartCrosshairOptions())
   }
 }

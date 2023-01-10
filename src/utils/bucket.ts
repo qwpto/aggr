@@ -237,7 +237,7 @@ export default class Bucket {
       return colorInput
     }
 
-    return (function() {
+    return (function () {
       'use strict'
       return new Function('value', '"use strict"; return ' + colorInput)
     })() as BucketColor

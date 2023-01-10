@@ -18,9 +18,7 @@
         :key="index"
         @mousedown="select"
         @touchstart="select"
-        :style="
-          `transform: translate(${handle.positionX}px, ${handle.positionY}px); background-color: ${handle.color};`
-        "
+        :style="`transform: translateX(${handle.positionX}px); background-color: ${handle.color};`"
       >
         <div class="slider__label" v-if="label">
           <slot name="tooltip" :value="handle.value">
@@ -35,6 +33,8 @@
 <script>
 import { mix } from 'color-fns'
 import { debounce, getClosestValue, getEventCords } from '@/utils/helpers'
+
+const CURSOR_PADDING = 4
 
 export default {
   name: 'VerteSlider',
@@ -84,7 +84,7 @@ export default {
       this.multiple = this.values.length > 1
       this.values = this.handlesValue
       this.handles = this.handlesValue.map(value => {
-        return { value, positionX: 0, positionY: 0, color: '#fff' }
+        return { value, positionX: 0, color: '#fff' }
       })
       if (this.values.length === 1) {
         this.values[0] = Number(this.value)
@@ -243,15 +243,17 @@ export default {
 
       this.left = trackRect.left
 
-      this.width = this.$el.clientWidth
+      let width = this.$el.clientWidth
 
-      if (!this.width) {
-        this.width = parseInt(this.track.parentElement.style.width)
+      if (!width) {
+        width = parseInt(this.track.parentElement.style.width)
       }
 
-      if (!this.width && trackRect.width) {
-        this.width = trackRect.width
+      if (!width && trackRect.width) {
+        width = trackRect.width
       }
+
+      this.width = width - CURSOR_PADDING * 2
 
       this.stepWidth = (this.width / (this.max - this.min)) * this.step
     },
@@ -287,7 +289,6 @@ export default {
       this.handles.splice(newIndex, 0, {
         value,
         positionX: 0,
-        positionY: 0,
         color: '#fff'
       })
       this.values.splice(newIndex, 0, value)
@@ -350,7 +351,7 @@ export default {
         this.handles[this.activeHandle].value = normalized
 
         this.handles[this.activeHandle].positionX =
-          positionPercentage * this.width
+          CURSOR_PADDING + positionPercentage * this.width
 
         this.currentValue = normalized
 

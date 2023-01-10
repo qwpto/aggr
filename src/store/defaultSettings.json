@@ -1,8 +1,9 @@
 {
   "preferQuoteCurrencySize": true,
   "aggregationLength": 1,
-  "disableAnimations": false,
   "calculateSlippage": null,
+  "wsProxyUrl": null,
+  "disableAnimations": false,
   "autoHideHeaders": true,
   "theme": "dark",
   "backgroundColor": "rgb(23,27,41)",
@@ -19,8 +20,7 @@
     "HighPassFilter": true,
     "LowPassFilter": false
   },
-  "settings": ["other", "workspaces", "chart", "stats", "counters", "audio"],
-  "searchSections": ["exchanges"],
+  "sections": ["settings-workspaces", "settings-trades"],
   "searchTypes": {
     "recentSearches": true,
     "historical": true,
@@ -30,11 +30,7 @@
     "normalize": true,
     "mergeUsdt": true
   },
-  "searchQuotes": {
-    "USD": true,
-    "USDT": true,
-    "UST": true
-  },
+  "searchQuotes": {},
   "previousSearchSelections": [],
   "searchExchanges": {
     "UNISWAP": false

@@ -232,15 +232,15 @@ const actions = {
     for (let i = 0; i < count; i++) {
       let buyScaled = getLogShade(buyRgb, baseMultipler + baseVariance * i)
       if (!i) {
-        buyScaled = joinRgba([...splitColorCode(buyScaled), 0.33])
+        buyScaled = [...buyScaled, 0.33]
       }
-      state.thresholds[i].buyColor = buyScaled
+      state.thresholds[i].buyColor = joinRgba(buyScaled)
 
       let sellScaled = getLogShade(sellRgb, baseMultipler + baseVariance * i)
       if (!i) {
-        sellScaled = joinRgba([...splitColorCode(sellScaled), 0.33])
+        sellScaled = [...sellScaled, 0.33]
       }
-      state.thresholds[i].sellColor = sellScaled
+      state.thresholds[i].sellColor = joinRgba(sellScaled)
     }
 
     this.dispatch('app/showNotice', {
@@ -404,7 +404,7 @@ const mutations = {
 
     state[type].push({
       id: randomString(8),
-      amount: state[type][state.thresholds.length - 1].amount * 2,
+      amount: state[type][state[type].length - 1].amount * 2,
       buyColor: 'rgb(0, 255, 0)',
       sellColor: 'rgb(255, 0, 0)',
       buyAudio,

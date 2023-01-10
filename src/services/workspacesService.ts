@@ -654,7 +654,9 @@ class WorkspacesService {
       const targetType = type.split(':')[0]
 
       if (targetType !== inputType) {
-        throw new Error(`Preset type ${inputType} is not ${targetType} type`)
+        throw new Error(
+          `Preset doesn't match with pane type (${inputType} is not ${targetType})`
+        )
       }
 
       preset.type = targetType
@@ -670,7 +672,7 @@ class WorkspacesService {
         cancel: 'Cancel'
       }))
     ) {
-      throw new Error(`Save preset : aborted`)
+      return
     }
 
     return this.db.put('presets', preset)
