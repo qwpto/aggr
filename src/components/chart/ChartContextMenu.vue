@@ -6,6 +6,10 @@
     >
       {{ timeframeForHuman }}
     </button>
+    <button @click="$store.dispatch('app/showSearch')" class="dropdown-item">
+      <i class="icon-search"></i>
+      <span>Search</span>
+    </button>
     <button
       @click="$emit('cmd', ['takeScreenshot', $event])"
       class="dropdown-item"
@@ -16,10 +20,6 @@
     <button @click="$emit('cmd', ['flipChart'])" class="dropdown-item">
       <i class="icon-flip"></i>
       <span>Flip</span>
-    </button>
-    <button @click="$emit('cmd', ['restart'])" class="dropdown-item">
-      <i class="icon-refresh"></i>
-      <span>Restart</span>
     </button>
     <template v-if="price">
       <template v-if="alert">

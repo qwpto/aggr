@@ -208,12 +208,10 @@ export default class extends Vue {
     }
 
     aggregatorService.on('alert', this.onAlert)
-    aggregatorService.on('decimals', this.onDecimals)
   }
 
   beforeDestroy() {
     aggregatorService.off('alert', this.onAlert)
-    aggregatorService.off('decimals', this.onDecimals)
   }
 
   async getAlerts() {
@@ -373,10 +371,6 @@ export default class extends Vue {
     if (button) {
       button.loading = false
     }
-  }
-
-  onDecimals(markets) {
-    console.log('decimals', markets)
   }
 }
 </script>
