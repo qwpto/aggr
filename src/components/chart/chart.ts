@@ -948,6 +948,7 @@ export default class Chart {
       this.clearIndicatorSeries(indicator)
     }
 
+    this._alertsRendered = false
     this.renderedRange.from = this.renderedRange.to = null
   }
 
