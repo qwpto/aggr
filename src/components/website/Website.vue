@@ -3,7 +3,7 @@
     <pane-header
       ref="paneHeader"
       :paneId="paneId"
-      :settings="() => import('@/components/website/WebsiteDialog.vue')"
+      :settings="getSettingsDialog"
       :show-search="false"
     >
       <template v-slot:menu>
