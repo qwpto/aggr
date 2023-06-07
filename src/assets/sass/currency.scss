@@ -102,14 +102,6 @@
     &[data-base='pound'] .icon-currency:before {
       content: $icon-pound;
     }
-
-    &[data-base='bitcoin'] .icon-currency:before {
-      content: $icon-btc;
-    }
-  
-    &[data-base='ethereum'] .icon-currency:before {
-      content: $icon-eth;
-    }
   
     &[data-base='xmr'] .icon-currency:before {
       content: $icon-xmr;
