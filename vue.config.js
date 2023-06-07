@@ -3,6 +3,7 @@ const path = require('path')
 const ServiceWorkerWebpackPlugin = require('serviceworker-webpack-plugin')
 const WebpackPwaManifest = require('webpack-pwa-manifest')
 const gitprocess = require('child_process')
+const StyleLintPlugin = require('stylelint-webpack-plugin')
 
 const date = new Date(
   gitprocess
@@ -77,6 +78,11 @@ module.exports = {
         background_color: '#171b29',
         orientation: 'omit',
         display: 'standalone'
+      }),
+      new StyleLintPlugin({
+        files: ['src/**/*.{vue,scss}'],
+        configFile: './stylelint.config.js',
+        fix: true
       })
     ]
   },
@@ -107,7 +113,7 @@ module.exports = {
   css: {
     loaderOptions: {
       sass: {
-        prependData: `@import "@/assets/sass/variables.scss";`
+        prependData: '@import "@/assets/sass/variables.scss";'
       }
     }
   },
