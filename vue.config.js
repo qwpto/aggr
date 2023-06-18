@@ -35,7 +35,6 @@ const {
   NODE_ENV,
   API_URL,
   PROXY_URL,
-  DEV_PROXY_URL,
   API_SUPPORTED_PAIRS,
   API_SUPPORTED_TIMEFRAMES,
   PUBLIC_PATH,
@@ -51,7 +50,7 @@ switch (NODE_ENV) {
     process.env.VUE_APP_PROXY_URL = PROXY_URL
     break
   case 'development':
-    process.env.VUE_APP_PROXY_URL = DEV_PROXY_URL
+    process.env.VUE_APP_PROXY_URL = PROXY_URL
     break
 }
 
