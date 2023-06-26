@@ -16,7 +16,7 @@ services:
       context: ../.
       dockerfile: ./docker/Dockerfile.dev
     volumes:
-        - C:\Users\axeld\Projects\aggr\:/usr/src/app
+        - ..:/usr/src/app
     ports:
       - 8080:8080
     env_file:
