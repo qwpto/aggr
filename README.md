@@ -76,17 +76,6 @@ npm run build
 
 and access the dist/index.html directly in the browser later without having to run a command
 
-### Docker
-
-build your own aggr client docker:
-
-```bash
-git clone https://github.com/Tucsky/aggr
-cd aggr
-docker build -t aggr-chart .
-```
-you need to set the API_URL as environment variable for your own installation, if you want to use that.
-
 ## Configuration
 SignificantTrades is now using Vue Cli which allows you to configure the client using .env file.
 
@@ -106,6 +95,26 @@ In order to show historical data YOU WILL need to setup your own server to provi
 See [aggr-server repository](https://github.com/Tucsky/aggr-server).
 
 Let's say you have a server instance running on port 3000, start the client with an environment variable `API_URL=http://localhost:3000/ npm run serve`
+
+The easiest way to get everything working easily is to use Docker. See below.
+
+### Docker
+
+#### Development
+
+Before starting with docker, make sure you have the latest version installed on your computer.
+
+The environment variables are located within the env.development file.
+
+Then, either head to the terminal and type:
+
+```bash
+git clone https://github.com/Tucsky/aggr && cd -
+cd aggr
+docker-compose -f "docker/docker-compose.dev.yml" up -d --build
+ ```
+
+Please ensure that you configure the API_URL to match your aggr-dev instance, with the default value being localhost:3000.
 
 ## Community
 
