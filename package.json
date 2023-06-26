@@ -5,7 +5,7 @@
   "scripts": {
     "cors": "node scripts/cors-server.js",
     "svg2font": "node scripts/svg2font.js",
-	"serve": "vue-cli-service serve",
+    "serve": "vue-cli-service serve",
     "prod": "vue-cli-service build --dest ./temp && rm -rf ./dist && mv ./temp ./dist",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
@@ -75,7 +75,9 @@
     "worker-loader": "^3.0.8"
   },
   "volta": {
-    "node": "16.20.0",
-	"npm": "8.19.4"
+    "node": "20.2.0",
+    "npm": "9.7.1"
   }
 }
+
+
