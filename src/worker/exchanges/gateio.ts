@@ -52,7 +52,7 @@ export default class extends Exchange {
     return { products, multipliers, types }
   }
 
-  /**
+  /**`
    * Sub
    * @param {WebSocket} api
    * @param {string} pair
