@@ -240,8 +240,8 @@ class AggregatorService extends EventEmitter {
       marketDecimals[localPair] = Math.round(
         decimals.reduce((a, b) => a + b) / decimals.length
       )
-      
-	  for (const market in decimalsByLocalMarkets[localPair]) {
+
+      for (const market in decimalsByLocalMarkets[localPair]) {
         marketDecimals[market] = marketDecimals[localPair]
       }
     }

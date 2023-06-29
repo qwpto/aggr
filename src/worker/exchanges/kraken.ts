@@ -129,7 +129,9 @@ export default class extends Exchange {
           pair: json.product_id,
           timestamp: json.time,
           price: json.price,
-          size: this.isPFregex.test(json.product_id) ? json.qty : (json.qty / json.price),
+          size: this.isPFregex.test(json.product_id)
+            ? json.qty
+            : json.qty / json.price,
           side: json.side
         }
       ])
