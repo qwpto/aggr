@@ -3,7 +3,7 @@ import Exchange from '../exchange'
 export default class extends Exchange {
   id = 'KRAKEN'
   private specs: { [pair: string]: number }
-  private isPFregex = /^PF_/ //
+  private isPFregex = /^PF_/
 
   protected endpoints = {
     PRODUCTS: [
